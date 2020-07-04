@@ -1,28 +1,39 @@
 import AppError from '../errors/AppError';
 
 import Transaction from '../models/Transaction';
-import TransactionRepository from '../repositories/TransactionsRepository';
+import TransactionsRepository from '../repositories/TransactionsRepository';
 import { getCustomRepository } from 'typeorm';
+
+import CreateCategoryService from '../services/CreateCategoryService';
+import Category from '../models/Category';
 
 interface Request {
   title: string;
   type: 'income' | 'outcome';
   value: number;
-  category_id: string;
+  category: string;
 }
 
 class CreateTransactionService {
-  public async execute({ title, value, type, category_id }: Request): Promise<Transaction> {
-    const transactionRepository = getCustomRepository(TransactionRepository);
+  public async execute({ title, value, type, category }: Request): Promise<Transaction> {
+    const transactionsRepository = getCustomRepository(TransactionsRepository);
 
-    const transaction = transactionRepository.create({
+    const balance = await transactionsRepository.getBalance();
+    if (type == 'outcome' && value > balance.total) {
+        throw new AppError('The outcome can\'t be greater then total');
+    }
+
+    const createCategory = new CreateCategoryService();
+    const categoryEntity = await createCategory.execute({ title: category });
+
+    const transaction = transactionsRepository.create({
       title,
       value,
       type,
-      category_id
+      category: categoryEntity
     });
 
-    await transactionRepository.save(transaction);
+    await transactionsRepository.save(transaction);
 
     return transaction;
   }

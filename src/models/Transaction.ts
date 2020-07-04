@@ -1,4 +1,13 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { 
+  Entity, 
+  Column, 
+  PrimaryGeneratedColumn, 
+  CreateDateColumn, 
+  UpdateDateColumn, 
+  ManyToOne, 
+  JoinColumn 
+} from 'typeorm';
+import Category from '../models/Category';
 
 @Entity('transactions')
 class Transaction {
@@ -8,11 +17,15 @@ class Transaction {
   @Column()
   title: string;
   
-  @Column()
+  @Column('decimal')
   type: 'income' | 'outcome';
 
   @Column()
   value: number;
+  
+  @ManyToOne(() => Category)
+  @JoinColumn({name: 'category_id'})
+  category: Category;
 
   @Column()
   category_id: string;

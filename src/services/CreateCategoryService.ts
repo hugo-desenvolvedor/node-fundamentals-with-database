@@ -9,15 +9,13 @@ class CreateCategoryService {
   public async execute({ title }: Request): Promise<Category> {
     const repository = getRepository(Category);
 
-    const checkCategoryExists = await repository.findOne({
+    let category = await repository.findOne({
       where: { title }
     })
 
-    if (checkCategoryExists) {
-      return checkCategoryExists;
+    if (!category) {
+      category = repository.create({ title });
     }
-
-    const category = repository.create({ title });
 
     await repository.save(category);
 
